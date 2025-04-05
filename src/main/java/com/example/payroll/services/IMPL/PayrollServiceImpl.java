@@ -42,8 +42,7 @@ public class PayrollServiceImpl implements PayrollService {
         Employee employee = employeeRepository.findById(payroll.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        // Ajouter le payroll à la liste des payrolls de l'employé
-        employee.getPayrolls().add(savedPayroll);
+
 
         // Sauvegarder l'employé avec le nouveau payroll
         employeeRepository.save(employee);
