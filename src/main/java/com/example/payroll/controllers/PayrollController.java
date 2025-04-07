@@ -1,7 +1,6 @@
 package com.example.payroll.controllers;
 
 import com.example.payroll.entity.Payroll;
-import com.example.payroll.services.interfaces.EmployeeService;
 import com.example.payroll.services.interfaces.PayrollService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +16,6 @@ public class PayrollController {
 
     @Autowired
     private PayrollService payrollService;
-    @Autowired
-    private EmployeeService employeeService;
-
 
 
     @GetMapping("/{id}")
@@ -59,4 +55,7 @@ public class PayrollController {
         Payroll savedPayroll = payrollService.savePayroll(payroll);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedPayroll);
     }
+
+    // Endpoint pour récupérer les détails de paiement d'un employé par son ID
+
 }

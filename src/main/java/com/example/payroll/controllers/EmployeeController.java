@@ -1,7 +1,6 @@
 package com.example.payroll.controllers;
 
 import com.example.payroll.entity.Employee;
-import com.example.payroll.entity.Payroll;
 import com.example.payroll.services.interfaces.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,6 +34,14 @@ public class EmployeeController {
         Optional<Employee> employee = employeeService.getEmployeeById(id);
         return employee.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+    @GetMapping("/debug")
+    public void debugAllEmployees() {
+        List<Employee> employees = employeeService.getAllEmployees();
+        for (Employee emp : employees) {
+            System.out.println("EMP: " + emp);
+        }
+    }
+
 
     // Save a new employee
     @PostMapping("/save")

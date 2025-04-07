@@ -1,7 +1,6 @@
 package com.example.payroll.services.interfaces;
 
 import com.example.payroll.entity.Employee;
-import com.example.payroll.entity.Payroll;
 
 import java.util.List;
 import java.util.Optional;

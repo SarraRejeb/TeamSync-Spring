@@ -1,7 +1,6 @@
 package com.example.payroll.services.IMPL;
 
 import com.example.payroll.entity.Employee;
-import com.example.payroll.entity.Payroll;
 import com.example.payroll.repository.EmployeeRepository;
 import com.example.payroll.services.interfaces.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
