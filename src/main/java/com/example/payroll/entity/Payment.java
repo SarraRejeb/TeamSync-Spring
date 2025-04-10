@@ -10,20 +10,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
     @Document(collection = "payments")
+    @Getter
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public class Payment {
 
-        @Getter
         @Id
         private String id;
-
         private String employeeId;  // Référence à l'employé concerné
-        @Getter
         private String payrollId;  // Référence vers le salaire (payroll)
         private Double amount;
-        @Getter
         private Date paymentDate;
         private String description;
         private boolean isRecurring;

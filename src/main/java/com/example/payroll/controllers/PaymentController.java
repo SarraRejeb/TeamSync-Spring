@@ -2,7 +2,9 @@ package com.example.payroll.controllers;
 
 import com.example.payroll.entity.Payment;
 import com.example.payroll.services.interfaces.PaymentService;
+import com.example.payroll.services.interfaces.PayrollService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,7 +16,6 @@ public class PaymentController {
 
     @Autowired
     private PaymentService paymentService;
-
     @PostMapping
     public Payment createPayment(@RequestBody Payment payment) {
         return paymentService.createPayment(payment);
@@ -44,4 +45,6 @@ public class PaymentController {
     public void deletePayment(@PathVariable String id) {
         paymentService.deletePayment(id);
     }
+
+
 }

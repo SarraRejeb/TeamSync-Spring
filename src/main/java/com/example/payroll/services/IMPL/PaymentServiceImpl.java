@@ -1,6 +1,5 @@
 package com.example.payroll.services.IMPL;
 
-
 import com.example.payroll.entity.Payment;
 import com.example.payroll.entity.Payroll;
 import com.example.payroll.repository.PaymentRepository;
@@ -8,6 +7,7 @@ import com.example.payroll.repository.PayrollRepository;
 import com.example.payroll.services.interfaces.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,23 +23,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment createPayment(Payment payment) {
-        String employeeId = payment.getEmployeeId();
-
-        // Utilisation de la méthode personnalisée
-        Payroll payroll = payrollRepository.findTopByEmployeeIdOrderByPayDateDesc(employeeId)
+        // Récupérer le dernier payroll pour l'employé
+        Payroll payroll = payrollRepository.findTopByEmployeeIdOrderByPayDateDesc(payment.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("Aucun payroll trouvé pour cet employé"));
 
-        // Associer automatiquement l'ID du payroll
+        // Définir le payrollId dans le paiement
         payment.setPayrollId(payroll.getId());
 
-        // Calculer le montant total du paiement
+        // Calculer le montant total à partir du salary + bonus
         Double totalAmount = payroll.getSalary() + payroll.getBonus();
         payment.setAmount(totalAmount);
 
-        // Par sécurité, réaffecter employeeId
-        payment.setEmployeeId(payroll.getEmployeeId());
-
-        // Si la date de paiement est nulle, utiliser la date du payroll
+        // Définir d'autres détails du paiement
         if (payment.getPaymentDate() == null) {
             payment.setPaymentDate(payroll.getPayDate());
         }
@@ -47,9 +42,9 @@ public class PaymentServiceImpl implements PaymentService {
         // Générer un numéro de référence
         payment.generateReferenceNumber(payroll.getPayDate());
 
+        // Sauvegarder et retourner le paiement
         return paymentRepository.save(payment);
     }
-
 
     @Override
     public Payment getPaymentById(String id) {
@@ -66,18 +61,59 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.findByEmployeeId(employeeId);
     }
 
+    @Transactional
     @Override
-    public Payment updatePayment(String id, Payment updatedPayment) {
-        Optional<Payment> existing = paymentRepository.findById(id);
-        if (existing.isPresent()) {
-            updatedPayment.setId(id);
-            return paymentRepository.save(updatedPayment);
+    public Payment updatePayment(String paymentId, Payment payment) {
+        // Récupérer le paiement existant
+        Payment existingPayment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Paiement non trouvé"));
+
+        // Récupérer le dernier payroll pour l'employé
+        Payroll payroll = payrollRepository.findTopByEmployeeIdOrderByPayDateDesc(payment.getEmployeeId())
+                .orElseThrow(() -> new RuntimeException("Aucun payroll trouvé pour cet employé"));
+
+        // Mettre à jour le payrollId dans le paiement existant
+        existingPayment.setPayrollId(payroll.getId());
+
+        // Calculer le nouveau montant total
+        Double totalAmount = payroll.getSalary() + payroll.getBonus();
+        existingPayment.setAmount(totalAmount);
+
+        // Mettre à jour les autres champs du paiement
+        existingPayment.setPaymentMethod(payment.getPaymentMethod());
+        existingPayment.setStatus(payment.getStatus());
+        existingPayment.setDescription(payment.getDescription());
+        existingPayment.setRecurring(payment.isRecurring());
+        existingPayment.setRecurrenceFrequency(payment.getRecurrenceFrequency());
+
+        if (payment.getPaymentDate() == null) {
+            existingPayment.setPaymentDate(payroll.getPayDate());
+        } else {
+            existingPayment.setPaymentDate(payment.getPaymentDate());
         }
-        return null;
+
+        // Générer un nouveau numéro de référence
+        existingPayment.generateReferenceNumber(payroll.getPayDate());
+
+        // Sauvegarder et retourner le paiement mis à jour
+        return paymentRepository.save(existingPayment);
     }
+
+
 
     @Override
     public void deletePayment(String id) {
         paymentRepository.deleteById(id);
     }
+
+    public void updatePaymentAmountByPayroll(Payroll payroll) {
+        List<Payment> payments = paymentRepository.findByPayrollId(payroll.getId());
+        for (Payment payment : payments) {
+            payment.setAmount(payroll.getSalary() + payroll.getBonus());
+            payment.setPaymentDate(payroll.getPayDate()); // facultatif
+            payment.generateReferenceNumber(payroll.getPayDate());
+            paymentRepository.save(payment);
+        }
+    }
+
 }

@@ -7,6 +7,7 @@ import com.example.payroll.repository.EmployeeRepository;
 import com.example.payroll.services.interfaces.PayrollService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,6 +16,9 @@ public class PayrollServiceImpl implements PayrollService {
 
     private final PayrollRepository payrollRepository;
     private final EmployeeRepository employeeRepository;
+
+    @Autowired
+    private PaymentServiceImpl paymentServiceImpl;
 
     @Autowired
     public PayrollServiceImpl(PayrollRepository payrollRepository, EmployeeRepository employeeRepository) {
@@ -56,18 +60,25 @@ public class PayrollServiceImpl implements PayrollService {
         Payroll existingPayroll = payrollRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payroll not found with id: " + id));
 
-        // Mettre à jour le payroll avec les nouvelles données
+        // Mettre à jour les champs de Payroll
         existingPayroll.setSalary(payrollDetails.getSalary());
-        existingPayroll.setPayDate(payrollDetails.getPayDate());
         existingPayroll.setBonus(payrollDetails.getBonus());
+        existingPayroll.setPayDate(payrollDetails.getPayDate());
         existingPayroll.setEmployeeId(payrollDetails.getEmployeeId());
 
-        return payrollRepository.save(existingPayroll);
+        Payroll updatedPayroll = payrollRepository.save(existingPayroll);
+
+        // Mettre à jour automatiquement le Payment lié
+        paymentServiceImpl.updatePaymentAmountByPayroll(updatedPayroll);
+
+        return updatedPayroll;
     }
+
 
     @Override
     public void deletePayroll(String id) {
         payrollRepository.deleteById(id);
     }
+
 
 }
